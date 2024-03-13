@@ -51,7 +51,11 @@ var (
 	issuerGroup = flag.String("issuer-group", "cert-manager.io", "This flag allows you to give a different API group when using an 'external' issuer, e.g., 'awspca.cert-manager.io'.")
 	inCluster   = flag.Bool("in-cluster", false, "Use the in-cluster kube config to connect to Kubernetes. Use this flag when running in a pod.")
 
+<<<<<<< HEAD
 	guestbookURL        = flag.String("guestbook-url", "https://guestbook.print-your-cert.cert-manager.io/write", "URL of the write path for the guestbook")
+||||||| parent of c76631a (Add a "guestbook")
+=======
+>>>>>>> c76631a (Add a "guestbook")
 	guestbookRootCAPath = flag.String("guestbook-ca", "guestbook/ca.crt", "Path to the CA certificate for the guestbook")
 )
 
@@ -1035,7 +1039,12 @@ func main() {
 	http.Handle("/downloadpkey", certFetchMiddleware(cmclient, downloadPrivateKeyPage(kclient, *namespace)))
 	http.Handle("/cert-manager-bundle.tar", certFetchMiddleware(cmclient, downloadTarPage(kclient, *namespace)))
 	http.Handle("/certificate", certFetchMiddleware(cmclient, certificatePage(kclient, *namespace)))
+<<<<<<< HEAD
 	http.Handle("/sign-guestbook", certFetchMiddleware(cmclient, signGuestbookPage(*guestbookURL, remoteRoots, kclient, *namespace)))
+||||||| parent of c76631a (Add a "guestbook")
+=======
+	http.Handle("/sign-guestbook", certFetchMiddleware(cmclient, signGuestbookPage(remoteRoots, kclient, *namespace)))
+>>>>>>> c76631a (Add a "guestbook")
 
 	fileserver := http.StripPrefix("/", http.FileServer(http.FS(static)))
 	http.Handle("/static/", cachingHeadersMiddleware(fileserver))
