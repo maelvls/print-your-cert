@@ -113,7 +113,7 @@ configuration for the ECDSA signature is shown below in
 [print-your-cert-ca](#print-your-cert-ca). Also, I chose to have a very long
 expiry for both certificates since there is no security risk associated with
 leaking either of the private keys (since the private keys of both will be
-discarded on 21 May 2022 anyways).
+discarded on 23 March 2024 anyways).
 
 The QR code contains a URL of the form:
 
@@ -612,7 +612,7 @@ Finally, set up the ClusterIssuer:
 
 ```sh
 # From the Raspberry Pi:
-kubectl apply -f -
+kubectl apply -f cluster_issuer.yaml
 ```
 
 ### Booth: Run the UI on the Raspberry Pi
@@ -626,8 +626,17 @@ Pi) and then load the image on the Pi:
 
 ```sh
 # From your laptop:
-ko build . --platform linux/arm64 --tarball print-your-cert-ui.tar --push=false
+KO_DOCKER_REPO=ghcr.io/cert-manager/print-your-cert-ui ko build . --platform linux/arm64 --tarball print-your-cert-ui.tar --push=false --bare
 ssh pi docker load <print-your-cert-ui.tar
+```
+
+Now, ssh into the Raspberry Pi and launch the UI:
+
+```sh
+# From your laptop.
+ssh pi docker rm -f print-your-cert-ui
+ssh pi 'kubectl get secret -n cert-manager root-print-your-cert-ca --template="{{index .data \"tls.crt\" | base64decode}}" | tee ca.crt'
+ssh pi docker run -d --restart=always --name print-your-cert-ui --net=host -v '/home/pi/.kube/config:/home/nonroot/.kube/config' -v '/home/pi/ca.crt:/home/nonroot/ca.crt' ghcr.io/cert-manager/print-your-cert-ui:latest --issuer print-your-cert-ca --issuer-kind ClusterIssuer --listen 0.0.0.0:8080 --guestbook-ca /home/nonroot/ca.crt
 ```
 
 > [!NOTE]
@@ -647,16 +656,6 @@ ssh pi docker load <print-your-cert-ui.tar
 > linux/ppc64le
 > linux/s390x
 > ```
-
-Now, ssh into the Raspberry Pi and launch the UI:
-
-```sh
-# From your laptop.
-ssh pi docker rm -f print-your-cert-ui
-ssh pi mkdir -p guestbook
-ssh pi 'kubectl get secret -n cert-manager root-print-your-cert-ca --template="{{index .data \"tls.crt\" | base64decode}}" | tee guestbook/ca.crt'
-ssh pi docker run -d --restart=always --name print-your-cert-ui --net=host -v '/home/pi/.kube/config:/root/.kube/config' -v '/home/pi/guestbook:/root/guestbook' ghcr.io/cert-manager/print-your-cert-ui:latest --issuer print-your-cert-ca --issuer-kind ClusterIssuer --listen 0.0.0.0:8080 --guestbook-ca /root/guestbook/ca.crt
-```
 
 ### Booth: Running the printer controller on the Raspberry Pi
 
