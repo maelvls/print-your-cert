@@ -44,6 +44,11 @@
           </div>
         </div>
       </div>
+
+      <a id="placeholder-download-pem">Download <code>client.crt</code></a>
+
+      <a id="placeholder-download-pem-key">Download <code>client.key</code></a>
+
       <p>This URL will be kept alive as long as GitHub Pages is alive.</p>
       <div class="push"></div>
 
@@ -68,26 +73,37 @@
     <script>
       try {
         const cert = getAsn1();
-        document.getElementById("placeholder-pem").innerHTML = cert;
         document.getElementById("placeholder-subject").innerHTML = cert.subject;
-        document.getElementById("placeholder-issuer").innerHTML = cert.issuer;
-        document.getElementById("placeholder-serial").innerHTML =
-          cert.serialNumber;
-        document.getElementById("placeholder-algorithm").innerHTML =
-          cert.signatureAlgorithm.name;
-        document.getElementById("placeholder-not-before").innerHTML =
-          cert.notBefore;
-        document.getElementById("placeholder-not-after").innerHTML =
-          cert.notAfter;
-        document.getElementById("placeholder-sans").innerHTML =
-          cert.extensions.subjectAltName;
-
-        // Loop through the extensions and find the one that has the .type == "2.5.29.17"
         cert.extensions.forEach((extension) => {
           if (extension.type === "2.5.29.17") {
-                document.getElementById("placeholder-sans").innerHTML = extension.names.items;
+            document.getElementById("placeholder-sans").innerHTML = extension.names.items;
           }
         });
+        document.getElementById("placeholder-issuer").innerHTML = cert.issuer;
+        document.getElementById("placeholder-serial").innerHTML =
+        cert.serialNumber;
+        document.getElementById("placeholder-algorithm").innerHTML =
+        cert.signatureAlgorithm.name;
+        document.getElementById("placeholder-not-before").innerHTML =
+        cert.notBefore;
+        document.getElementById("placeholder-not-after").innerHTML =
+        cert.notAfter;
+        document.getElementById("placeholder-pem").innerHTML = cert;
+
+        const blobcert = new Blob([cert], { type: 'application/octet-stream' });
+        const downloadCertLink = document.getElementById("placeholder-download-pem");
+        downloadCertLink.href = URL.createObjectURL(blobcert);
+        downloadCertLink.download = 'client.crt';
+
+        var key = params.key || params.k; // Example: "MIIDBzCCAe%2Bg...GLMQswCQYD%0A"
+        if (!key) {
+          console.log("the query parameter 'k' or 'key' was not passed, skipping");
+        } else {
+          const blobkey = new Blob([`-----BEGIN PRIVATE KEY-----\n${key}\n-----END PRIVATE KEY-----`], { type: 'application/octet-stream' });
+        const downloadKeyLink = document.getElementById("placeholder-download-pem-key");
+        downloadKeyLink.href = URL.createObjectURL(blobkey);
+        downloadKeyLink.download = 'client.key';
+        }
       } catch (e) {
         document.getElementById("content").innerHTML =
           "Issue with the certificate: " + e;
